@@ -1,40 +1,27 @@
-const express = require('express');
-const sequelize = require('./config/banco');
-const Usuario = require('./modelo/Usuario');
-const Produtos = require('./modelo/Produtos');
-const app = express()
-const port = 3000
+const express = require("express");
+const { sequelize } = require("./models/produto");
+const produtosRouter = require("./rotas/produtos");
+
+const app = express();
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-app.get('/usuarios', async (req, res) => {
-  const usuarios = await Usuario.findAll();
-  res.json(usuarios);
-})
-
-app.get('/produtos', async(req, res) => {
-  const Produto = await Produtos.findAll();
-  res.json(Produto);
-})
-
-app.post('/usuarios', async (req, res) => {
-  const { nome } = req.body;
-  const usuario = await Usuario.create({ nome });
-  res.status(201).json(usuario);
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", api: "Produtos" });
 });
 
-app.post('/produtos', async (req, res) => {
-  const {nome, descricao, preco} = req.body;
-  const Produto = await Produtos.create({nome,descricao,preco});
-  res.status(201).json(Produto);
-});
+app.use("/produtos", produtosRouter);
 
-
-
-sequelize.sync().then(() => {
-  console.log(`Banco de dados conectado com sucesso!`);
-
-  app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`)
+sequelize
+  .sync()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`API de Produtos rodando em http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Erro ao sincronizar com o banco de dados:", err);
   });
-});
+
+module.exports = app;
